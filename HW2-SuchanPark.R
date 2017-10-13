@@ -41,12 +41,10 @@ Summary(chain, burnIn,trueA,trueB,trueSd)
 # for comparison:
 summary(lm(y~x))
 
-
-
 #Make a new function, compare_outcomes that takes as input an iteration number.
 #Should loop 10 times.
 #Each time, it should initialize the MCMC chain with randomly selected startvalue
-# After each loop, the function should compute mean std for a, and print.
+#After each loop, the function should compute mean std for a, and print.
 
 compare_outcomes<-function(n)
 {

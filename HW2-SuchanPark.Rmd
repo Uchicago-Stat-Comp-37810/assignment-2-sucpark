@@ -1,30 +1,103 @@
 ---
-title: "HW2"
+title: "Assignment2"
 author: "Suchan Park"
-date: '2017 10 11 '
-output: html_document
+date: '2017 10 14 '
+output: 
+  pdf_document
 ---
+##Main Source
+```{r}
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/likelihood.R")
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/slopevalues.R")
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/prior.R")
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/proposalfunction.R")
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/posterior.R")
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/run_mh_mcmc.R")
+source("~/Desktop/2017-Autumn/Github/assignment-2-sucpark/Summary.R")
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#  Data structure
+trueA <- 5
+trueB <- 0
+trueSd <- 10
+sampleSize <- 31
+# create independent x-values 
+x <- (-(sampleSize-1)/2):((sampleSize-1)/2)
+# create dependent values according to ax + b + N(0,sd)
+y <-  trueA * x + trueB + rnorm(n=sampleSize,mean=0,sd=trueSd)
+
+par(mfrow=c(1,1))
+plot(x,y, main="Test Data")
+# Example: plot the likelihood profile of the slope a
+
+#slopevalues function works for each element in the prior vector.
+slopelikelihoods <- lapply(seq(3, 7, by=.05), slopevalues) 
+
+plot (seq(3, 7, by=.05), slopelikelihoods , type="l", 
+          xlab = "values of slope parameter a", ylab = "Log likelihood")
+
+# The MCMC : Metropolis algorithm 
+
+startvalue = c(4,0,10)
+chain = run_metropolis_MCMC(startvalue, 10000)
+
+burnIn = 5000 # Discard 5000 data when computing acceptance.
+#Compute the rejection rate of proposal function
+acceptance = 1-mean(duplicated(chain[-(1:burnIn),]))
+
+# Summary:
+Summary(chain, burnIn,trueA,trueB,trueSd)
+
+# For comparison:
+summary(lm(y~x))
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+```{r}
 
-```{r cars}
-summary(cars)
+#Make a new function, compare_outcomes that takes as input an iteration number.
+#Should loop 10 times.
+#Each time, it should initialize the MCMC chain with randomly selected startvalue
+#After each loop, the function should compute mean std for a, and print.
+
+
+
+compare_outcomes<-function(n)
+{
+  mean_a_v<-c()
+  sd_a_v<-c()
+  for (i in c(1:10))
+  {
+    a<-rnorm(1,mean=4,sd=2) #Initialize startvalue for MCMC
+    b<-rnorm(1,mean=0,sd=2)
+    sd<-rnorm(1,mean=10,sd=2)
+  
+    startvalue1<-c(a,b,sd) #set a new start value
+    chain1=run_metropolis_MCMC(startvalue1, n)
+    mean_a<-mean(chain1[,1]) #Compute the mean of a in chain1
+    sd_a<-sd(chain1[,1]) #Compute the sd of a in chain1
+    mean_a_v<-c(mean_a_v,mean_a)
+    sd_a_v<-c(sd_a_v,sd_a)
+    print(paste("Mean a : ", mean_a,", Sd of a : ", sd_a)) 
+    #print mean(a) and sd(a)
+  }
+  print(paste("The Mean of Mean_a     : ",mean(mean_a_v)))
+  print(paste("The Variance of Mean_a : ",var(mean_a_v)))
+  print(paste("The Variance of Sd_a   : ",var(sd_a_v)))
+}
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+compare_outcomes(1000) #Computes in 1000 iterations
+```
+```{r}
+compare_outcomes(10000) #Computes in 10000 iterations
+```
+```{r}
+compare_outcomes(100000) #Computes in 100000 iterations
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+From the result, we can find that mean value of "a"" in chain is similar but as an interation number increases, the variance of "a"" in chain value is decreased.
+Therefore, it is pretty safe to say that more iteration number can make a stable and accurate outcome.
+
+
