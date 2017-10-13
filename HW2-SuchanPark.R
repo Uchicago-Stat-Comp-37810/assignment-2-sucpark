@@ -40,3 +40,31 @@ acceptance = 1-mean(duplicated(chain[-(1:burnIn),])) #Compute the rejection rate
 Summary(chain, burnIn,trueA,trueB,trueSd)
 # for comparison:
 summary(lm(y~x))
+
+
+
+#Make a new function, compare_outcomes that takes as input an iteration number.
+#Should loop 10 times.
+#Each time, it should initialize the MCMC chain with randomly selected startvalue
+# After each loop, the function should compute mean std for a, and print.
+
+compare_outcomes<-function(n)
+{
+  #mean_a_v<-c()
+  #sd_a_v<-c()
+  print("Test")
+  for (i in c(1:10))
+  {
+    a<-rnorm(1,mean=4,sd=2) #Initialize startvalue for MCMC
+    b<-rnorm(1,mean=0,sd=2)
+    sd<-rnorm(1,mean=10,sd=2)
+  
+    startvalue1<-c(a,b,sd) #set a new start value
+    chain1=run_metropolis_MCMC(startvalue1, n)
+    mean_a<-mean(chain1[,1]) #Compute the mean of a in chain1
+    sd_a<-sd(chain1[,1]) #Compute the sd of a in chain1
+    #mean_a_v<-c(mean_a_v,mean_a)
+    #sd_a_v<-c(sd_a_v,sd_a)
+    print(paste("Mean a : ", mean_a,", Sd of a : ", sd_a)) #print mean(a) and sd(a)
+  }
+}
